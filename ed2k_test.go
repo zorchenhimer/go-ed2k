@@ -1,6 +1,7 @@
 package ed2k
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -211,5 +212,14 @@ func verifyBlueRed(t *testing.T, h *Ed2k, expectBlue, expectRed string) {
 		t.Errorf("   expected: %q", expectRed)
 	} else {
 		t.Logf("red  passed: %q", gotRed)
+	}
+
+	// Also check that Sum() matches blue
+	sum := fmt.Sprintf("%x", h.Sum(nil))
+	if sum != expectBlue {
+		t.Errorf("Sum  failed: %q", sum)
+		t.Errorf("   expected: %q", expectBlue)
+	} else {
+		t.Logf("Sum  passed: %q", sum)
 	}
 }
