@@ -15,6 +15,36 @@ const zeroOneChunkRed = "fc21d9af828f92a8df64beac3357425d"
 const zeroTwoChunkBlue = "194ee9e4fa79b2ee9f8829284c466051"
 const zeroTwoChunkRed = "114b21c63a74b6ca922291a11177dd5c"
 
+func TestNoChunk(t *testing.T) {
+	h := New()
+	h.setTest(t)
+
+	const targetHash = "31d6cfe0d16ae931b73c59d7e0c089c0"
+	verifyBlueRed(t, h, targetHash, targetHash)
+}
+
+func TestZeroOneByte(t *testing.T) {
+	h := New()
+	h.setTest(t)
+
+	verifyWrite(t, h, 1, []byte{0})
+
+	const targetHash = "47c61a0fa8738ba77308a8a600f88e4b"
+	verifyBlueRed(t, h, targetHash, targetHash)
+}
+
+func TestZeroHalfChunk(t *testing.T) {
+	h := New()
+	h.setTest(t)
+
+	zf := make([]byte, chunkSize/2)
+
+	verifyWrite(t, h, 1, zf)
+
+	const targetHash = "ca6ea162b58a7e26c7f1830aa4fb9c5c"
+	verifyBlueRed(t, h, targetHash, targetHash)
+}
+
 func TestZeroOneChunk(t *testing.T) {
 	h := New()
 	h.setTest(t)
