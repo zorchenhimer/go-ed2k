@@ -45,13 +45,11 @@ func (h *Ed2k) Write(p []byte) (int, error) {
 		}
 
 		h.hashes = append(h.hashes, cmd4.Sum([]byte{})...)
-		//h.hashes = cmd4.Sum(h.hashes)
 	}
 
 
 	if h.buff.Len() > 0 {
 		overflow := h.buff.Bytes()
-		//h.buff = bytes.NewBuffer(h.buff.Bytes())
 		h.buff.Reset()
 		_, err := h.buff.Write(overflow)
 		if err != nil {
@@ -65,13 +63,17 @@ func (h *Ed2k) Write(p []byte) (int, error) {
 }
 
 func (h *Ed2k) Sum(b []byte) []byte {
-	leftover, hashes, err := h.currentHash()
+	_, hashes, err := h.currentHash()
 	if err != nil {
 		panic(err)
 	}
 
-	if !leftover && len(hashes) == h.Size() {
-		//return fmt.Sprintf("%x", hashes), nil
+	if h.t != nil {
+		h.t.Logf("[Sum] len(hashes): %d", len(hashes))
+		h.t.Logf("[Sum] hashes: %X", hashes)
+	}
+
+	if len(hashes) == h.Size() {
 		return append(b, hashes...)
 	}
 
@@ -98,6 +100,10 @@ func (h *Ed2k) BlockSize() int {
 }
 
 func (h *Ed2k) currentHash() (bool, []byte, error) {
+	if h.t != nil {
+		h.t.Logf("[currentHash] h.buff.Len(): %d", h.buff.Len())
+	}
+
 	if h.buff.Len() != 0 {
 		b := h.buff.Bytes()
 		cmd4 := md4.New()
@@ -112,19 +118,21 @@ func (h *Ed2k) currentHash() (bool, []byte, error) {
 }
 
 func (h *Ed2k) SumBlue() (string, error) {
-	leftover, hashes, err := h.currentHash()
+	_, hashes, err := h.currentHash()
 	if err != nil {
 		return "", err
 	}
 
-	if !leftover && len(hashes) == h.Size() {
+	if h.t != nil {
+		//h.t.Logf("leftover: %t", leftover)
+		h.t.Logf("[SumBlue] len(hashes): %d", len(hashes))
+		h.t.Logf("[SumBlue] hashes: %X", hashes)
+	}
+	if len(hashes) == h.Size() {
 		return fmt.Sprintf("%x", hashes), nil
 	}
 
 	hsh := md4.New()
-	if h.t != nil {
-		h.t.Logf("bluehashes: %X", hashes)
-	}
 	_, err = hsh.Write(hashes)
 	if err != nil {
 		return "", err
@@ -136,6 +144,15 @@ func (h *Ed2k) SumBlue() (string, error) {
 
 // The "bugged" version of the hash.  See https://wiki.anidb.net/Ed2k-hash#How_is_an_ed2k_hash_calculated_exactly? for more info.
 func (h *Ed2k) SumRed() (string, error) {
+	if len(h.hashes) == 0 {
+		lsh := md4.New()
+		_, err := lsh.Write(h.buff.Bytes())
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%x", lsh.Sum([]byte{})), nil
+	}
+
 	leftover, hashes, err := h.currentHash()
 	if err != nil {
 		return "", err
@@ -152,7 +169,8 @@ func (h *Ed2k) SumRed() (string, error) {
 	}
 
 	if h.t != nil {
-		h.t.Logf("red hashes: %X", hashes)
+		h.t.Logf("[SumRed] leftover: %t", leftover)
+		h.t.Logf("[SumRed] hashes: %X", hashes)
 	}
 
 	_, err = hsh.Write(hashes)

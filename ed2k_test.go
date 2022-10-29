@@ -159,6 +159,7 @@ func TestSizes(t *testing.T) {
 
 func TestReset(t *testing.T) {
 	h := New()
+	h.setTest(t)
 
 	// For this test, we don't care whether the sums have the expected
 	// values, only whether they're consistent - so don't verify them,
