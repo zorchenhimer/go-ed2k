@@ -25,6 +25,7 @@ func (h *Ed2k) setTest(t *testing.T) {
 	h.t = t
 }
 
+// Write implements hash.Write()
 func (h *Ed2k) Write(p []byte) (int, error) {
 	n, err := h.buff.Write(p)
 	if err != nil {
@@ -62,6 +63,7 @@ func (h *Ed2k) Write(p []byte) (int, error) {
 	return n, nil
 }
 
+// Sum implements hash.Sum()
 func (h *Ed2k) Sum(b []byte) []byte {
 	_, hashes, err := h.currentHash()
 	if err != nil {
@@ -86,15 +88,18 @@ func (h *Ed2k) Sum(b []byte) []byte {
 	return hsh.Sum(b)
 }
 
+// Reset implements hash.Reset()
 func (h *Ed2k) Reset() {
 	h.buff.Reset()
 	h.hashes = []byte{}
 }
 
+// Size implements hash.Size()
 func (h *Ed2k) Size() int {
 	return 16
 }
 
+// BlockSize implements hash.BlockSize()
 func (h *Ed2k) BlockSize() int {
 	return 9728000
 }
@@ -117,6 +122,7 @@ func (h *Ed2k) currentHash() (bool, []byte, error) {
 	return false, h.hashes, nil
 }
 
+// SumBlue implements the "Blue" hash version.
 func (h *Ed2k) SumBlue() (string, error) {
 	_, hashes, err := h.currentHash()
 	if err != nil {
@@ -142,7 +148,7 @@ func (h *Ed2k) SumBlue() (string, error) {
 	return fmt.Sprintf("%x", bhash), nil
 }
 
-// The "bugged" version of the hash.  See https://wiki.anidb.net/Ed2k-hash#How_is_an_ed2k_hash_calculated_exactly? for more info.
+// SumRed implements the bugged ("Red") version of the hash.  See https://wiki.anidb.net/Ed2k-hash#How_is_an_ed2k_hash_calculated_exactly? for more info.
 func (h *Ed2k) SumRed() (string, error) {
 	if len(h.hashes) == 0 {
 		lsh := md4.New()
